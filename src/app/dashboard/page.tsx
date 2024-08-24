@@ -34,7 +34,7 @@ function Page() {
 
   return (
     <div className="flex flex-col items-center mt-8">
-      <h1 className="text-2xl font-bold mb-4">Profile</h1>
+      <h1 className="text-2xl font-bold mb-4">Dashboard</h1>
       <hr className="w-full my-2 border-gray-300" />
       <h2 className="text-xl font-semibold my-4">Profile Page</h2>
       <hr className="border-gray-300" />

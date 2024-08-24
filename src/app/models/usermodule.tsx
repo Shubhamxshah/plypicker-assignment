@@ -12,7 +12,7 @@ const userSchema = new mongoose.Schema({
   },
   role: {
     type: String,
-    required: [true, 'Please select a role']
+    required: [true, 'Please select a role'],
   },
   createdAt: {
     type: Date,

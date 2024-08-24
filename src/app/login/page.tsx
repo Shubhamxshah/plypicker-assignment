@@ -19,9 +19,10 @@ export default function Page() {
       const response = await axios.post('/api/user/login', user);
       toast({
         description: 'login successful',
-        variant: 'default', // or any other variant you've defined
+        variant: 'default',
       });
-      router.push('/profile');
+      localStorage.setItem('userRole', response.data.role);
+      router.push('/dashboard');
     } catch (error: any) {
       if (error.response && error.response.status === 400) {
         setErrorMessage('Invalid email or password');
@@ -74,7 +75,7 @@ export default function Page() {
         </button>
       </div>
       <hr className="w-full my-4" />
-      <p className="mt-2">Not registered? <a href="/signup" className="text-blue-500 hover:underline">Sign up here</a></p>
+      <p className="mt-2">Not registered? <a href="/register" className="text-blue-500 hover:underline">Sign up here</a></p>
     </div>
   );
 }
