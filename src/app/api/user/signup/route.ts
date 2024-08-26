@@ -1,56 +1,55 @@
+import User from '@/app/models/usermodule';
 import { NextRequest, NextResponse } from 'next/server';
 import bcryptjs from 'bcryptjs';
-import * as jose from 'jose';
 import { connect } from '@/app/dbconfig/dbconfig';
-import User from '@/app/models/usermodule';
+import { z } from 'zod';
 
 connect();
 
+// Define the Zod schema for validation
+const SignupSchema = z.object({
+    email: z.string().email('Invalid email address'),
+    password: z.string().min(6, 'Password must be at least 6 characters long'),
+    role: z.enum(['admin', 'team_member'])
+});
+
 export async function POST(request: NextRequest) {
-  try {
-    const reqBody = await request.json();
-    const { email, password, role } = reqBody;
+    try {
+        // Parse and validate the request body
+        const reqBody = await request.json();
+        const parsedData = SignupSchema.parse(reqBody);
+        const { email, password, role } = parsedData;
 
-    const user = await User.findOne({ email });
-    if (user) {
-      return NextResponse.json({ error: 'User already exists' }, { status: 400 });
+        // Check if the user already exists
+        const existingUser = await User.findOne({ email });
+        if (existingUser) {
+            return NextResponse.json({ error: 'User already exists' }, { status: 400 });
+        }
+
+        // Hash the password
+        const salt = await bcryptjs.genSalt(10);
+        const hashedPassword = await bcryptjs.hash(password, salt);
+
+        // Create and save the new user
+        const newUser = new User({
+            email,
+            password: hashedPassword,
+            role
+        });
+
+        const savedUser = await newUser.save();
+
+        return NextResponse.json({
+            message: "User created successfully.",
+            success: true,
+            savedUser
+        });
+    } catch (error: any) {
+        if (error instanceof z.ZodError) {
+            // Handle Zod validation errors
+            return NextResponse.json({ error: 'Validation failed', details: error.errors }, { status: 400 });
+        }
+        // Handle other errors
+        return NextResponse.json({ error: 'An unexpected error occurred' }, { status: 500 });
     }
-
-    const salt = await bcryptjs.genSalt(10);
-    const hashedPassword = await bcryptjs.hash(password, salt);
-
-    const newUser = new User({
-      email,
-      password: hashedPassword,
-      role,
-    });
-
-    const savedUser = await newUser.save();
-
-    const tokenData = {
-      id: savedUser._id,
-      email: savedUser.email,
-      role: savedUser.role
-    };
-
-    const secret = new TextEncoder().encode(process.env.TOKEN_SECRET!);
-    const token = await new jose.SignJWT(tokenData)
-      .setProtectedHeader({ alg: 'HS256' })
-      .setExpirationTime('1d')
-      .sign(secret);
-
-    const response = NextResponse.json({
-      message: 'User created successfully',
-      success: true,
-      savedUser
-    });
-
-    response.cookies.set("token", token, {
-      httpOnly: true,
-    });
-
-    return response;
-  } catch (error: any) {
-    return NextResponse.json({ error: error.message }, { status: 500 });
-  }
 }
