@@ -4,7 +4,7 @@ type Props = {}
 
 const AdminDashboard = (props: Props) => {
   return (
-    <div>admindashboard</div>
+    <div>admin-dashboard</div>
   )
 }
 
