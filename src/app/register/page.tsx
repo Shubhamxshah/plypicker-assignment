@@ -3,7 +3,7 @@ import React, { useEffect, useState } from "react";
 import axios from "axios";
 import Link from "next/link";
 import { useToast } from '@/components/ui/use-toast';
-import { useRouter } from "next/navigation"; // Updated import
+import { useRouter } from "next/navigation";
 
 export default function Page() {
   const router = useRouter();
@@ -15,7 +15,6 @@ export default function Page() {
   });
   const [buttonDisabled, setButtonDisabled] = useState(true);
   const [loading, setLoading] = useState(false);
-  const [isEmailRegistered, setIsEmailRegistered] = useState(false);
 
   const handleRoleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setUser({ ...user, role: e.target.value });
@@ -27,24 +26,45 @@ export default function Page() {
       const response = await axios.post("/api/user/signup", user);
       console.log("Signup success", response.data);
       toast({
-        title: 'sign up successful',
+        title: 'Sign up successful',
         description: 'Please login using the same credentials',
         variant: 'default', 
       });
       router.push("/login");
     } catch (error: any) {
-      console.log("Signup failed", error.message);
-      if (
-        error.response &&
-        error.response.status === 400 &&
-        error.response.data.error === "User already exists"
-      ) {
-        setIsEmailRegistered(true);
+      console.log("Signup failed", error);
+      
+      // Check if the error response is due to schema validation or other issues
+      if (error.response) {
+        if (error.response.status === 400) {
+          // Check if the error is related to validation or duplicate email
+          if (error.response.data.error === "User already exists") {
+            toast({
+              title: 'Error',
+              description: 'Email already exists. Please use a different email.',
+              variant: 'destructive',
+            });
+          } else {
+            // Handle schema validation errors
+            toast({
+              title: 'Validation Error',
+              description: 'Please ensure all fields are filled out correctly.',
+              variant: 'destructive',
+            });
+          }
+        } else {
+          // Handle unexpected errors
+          toast({
+            title: 'Error',
+            description: 'An unexpected error occurred. Please try again later.',
+            variant: 'destructive',
+          });
+        }
       } else {
-        setIsEmailRegistered(false);
+        // Network error or no response
         toast({
-          title: 'Error',
-          description: 'Email exists already',
+          title: 'Network Error',
+          description: 'Unable to reach the server. Please check your connection and try again.',
           variant: 'destructive',
         });
       }
@@ -54,11 +74,10 @@ export default function Page() {
   };
 
   useEffect(() => {
-    if (user.email.length > 0 && user.password.length > 0 && user.role.length > 0) {
-      setButtonDisabled(false);
-    } else {
-      setButtonDisabled(true);
-    }
+    // Enable button only if all fields are non-empty
+    setButtonDisabled(
+      !(user.email && user.password && user.role)
+    );
   }, [user]);
 
   return (
@@ -67,11 +86,6 @@ export default function Page() {
         {loading ? "Processing" : "Signup"}
       </h1>
       <hr className="w-full my-4" />
-      {isEmailRegistered && (
-        <p className="text-red-500 mb-4">
-          You have already registered. Please login to your account.
-        </p>
-      )}
       <div className="w-64">
         <label htmlFor="email" className="block mb-1 font-medium text-gray-700">
           Email
@@ -81,10 +95,7 @@ export default function Page() {
           type="email"
           placeholder="Email"
           value={user.email}
-          onChange={(e) => {
-            setUser({ ...user, email: e.target.value });
-            setIsEmailRegistered(false);
-          }}
+          onChange={(e) => setUser({ ...user, email: e.target.value })}
           className="w-full px-4 py-2 mb-2 border rounded-lg focus:outline-none focus:border-blue-500"
         />
         <label

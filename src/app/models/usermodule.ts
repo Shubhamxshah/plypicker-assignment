@@ -1,3 +1,4 @@
+// models/user.model.js
 import mongoose from 'mongoose';
 
 const userSchema = new mongoose.Schema({
@@ -12,15 +13,27 @@ const userSchema = new mongoose.Schema({
   },
   role: {
     type: String,
-    required: [true, 'Please select a role'],
+    required: [true, 'Please select a role']
   },
   createdAt: {
     type: Date,
     default: Date.now
+  },
+  // Statistics fields (optional)
+  updateRequests: {
+    type: Number,
+    default: 0
+  },
+  approvedRequests: {
+    type: Number,
+    default: 0
+  },
+  rejectedRequests: {
+    type: Number,
+    default: 0
   }
 });
 
-// Ensure that 'User' model is only created once
 const User = mongoose.models.User || mongoose.model('User', userSchema);
 
 export default User;
