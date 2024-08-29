@@ -1,27 +1,39 @@
-// components/ProductCard.tsx
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Image from 'next/image';
 import { FaEdit } from 'react-icons/fa';
 import { Product } from './types/Product';
- 
+
 interface ProductCardProps {
-  product : Product
+  product: Product;
   isEditable: boolean;
   onEdit: (id: string) => void;
 }
 
 const ProductCard: React.FC<ProductCardProps> = ({ product, isEditable, onEdit }) => {
   const [isHovered, setIsHovered] = useState(false);
+  const [imageSrc, setImageSrc] = useState(product.image);
+
+  useEffect(() => {
+    // Generate a unique image URL on component mount
+    setImageSrc(`${product.image}?random=${product.id}`);
+  }, [product.id, product.image]);
 
   return (
     <div 
-      className="relative bg-white bg-opacity-5 rounded overflow-hidden shadow-lg "
+      className="relative bg-white bg-opacity-5 rounded overflow-hidden shadow-lg"
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
     >
       <div className="flex">
-        <div className="w-1/3 ">
-          <Image src={product.image} alt={product.productName} width={200} height={200} className="object-cover w-full h-full rounded-xl p-1 " />
+        <div className="w-1/3">
+          <Image 
+            src={imageSrc} 
+            alt={product.productName} 
+            width={200} 
+            height={200} 
+            className="object-cover w-full h-full rounded-xl p-1"
+            unoptimized // This bypasses Next.js image optimization
+          />
         </div>
         <div className="w-2/3 p-4">
           <div className="bg-white bg-opacity-0 p-2 rounded">
