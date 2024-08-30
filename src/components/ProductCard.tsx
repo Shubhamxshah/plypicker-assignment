@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import Image from 'next/image';
 import { FaEdit } from 'react-icons/fa';
-import { Product } from './types/Product';
+import { Product } from '../types/Product';
 
 interface ProductCardProps {
   product: Product;

@@ -20,7 +20,7 @@ const userSchema = new mongoose.Schema({
     default: Date.now
   },
   // Statistics fields (optional)
-  updateRequests: {
+  reviewRequests: {
     type: Number,
     default: 0
   },
@@ -29,6 +29,10 @@ const userSchema = new mongoose.Schema({
     default: 0
   },
   rejectedRequests: {
+    type: Number,
+    default: 0
+  },
+  editsDone: {
     type: Number,
     default: 0
   }

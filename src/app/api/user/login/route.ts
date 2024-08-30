@@ -1,8 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import bcryptjs from 'bcryptjs';
 import * as jose from 'jose';
-import { connect } from '@/app/dbconfig/dbconfig';
-import User from '@/app/models/usermodule';
+import { connect } from '@/dbconfig/dbconfig';
+import User from '@/models/usermodule';
 
 connect();
 

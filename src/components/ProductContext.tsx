@@ -1,21 +1,15 @@
+// ProductContext.tsx
+
 'use client'
 import React, { createContext, useContext, useState, useEffect } from 'react';
-import Product from '@/app/models/productmodule';
-
-type ProductType = {
-  id: string;
-  productName: string;
-  price: string;
-  image: string;
-  productDescription: string;
-  department: string;
-};
+import { ProductType } from '@/types/types';
 
 interface ProductContextType {
   products: ProductType[];
   fetchProducts: () => Promise<void>;
   createUpdateRequest: (productId: string, changes: Partial<ProductType>) => Promise<void>;
   syncProductsFromAPI: () => Promise<void>;
+  createReviewRequest: (productData: ProductType) => Promise<void>;
 }
 
 const ProductContext = createContext<ProductContextType | undefined>(undefined);
@@ -24,7 +18,7 @@ export const ProductProvider: React.FC<{ children: React.ReactNode }> = ({ child
   const [products, setProducts] = useState<ProductType[]>([]);
 
   const fetchProducts = async () => {
-    try {
+    try { 
       const response = await fetch('/api/products');
       const data = await response.json();
       setProducts(data);
@@ -42,6 +36,22 @@ export const ProductProvider: React.FC<{ children: React.ReactNode }> = ({ child
       });
       if (!response.ok) {
         throw new Error('Failed to create update request');
+      }
+    } catch (error) {
+      console.error('Error creating update request:', error);
+      throw error;
+    }
+  };
+
+  const createReviewRequest = async (productData: ProductType) => {
+    try {
+      const response = await fetch('/api/review-requests', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ productData}),
+      });
+      if (!response.ok) {
+        throw new Error('Failed to create review request');
       }
     } catch (error) {
       console.error('Error creating update request:', error);
@@ -67,7 +77,7 @@ export const ProductProvider: React.FC<{ children: React.ReactNode }> = ({ child
   }, []);
 
   return (
-    <ProductContext.Provider value={{ products, fetchProducts, createUpdateRequest, syncProductsFromAPI }}>
+    <ProductContext.Provider value={{ products, fetchProducts, createUpdateRequest, syncProductsFromAPI, createReviewRequest }}>
       {children}
     </ProductContext.Provider>
   );

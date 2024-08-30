@@ -1,21 +1,38 @@
-'use client'
+// /app/product/[id]/page.tsx
+"use client";
 
-import React, { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { FaCamera } from "react-icons/fa";
 import { ProductProvider, useProducts } from "@/components/ProductContext";
-import Cropper from "react-easy-crop";
-import { uploadImage } from "@/lib/firebase";
+import { ProductType } from "@/types/types";
 
 const EditProductPage = () => {
   const params = useParams();
   const router = useRouter();
   const id = params.id as string;
-  const { products, createUpdateRequest, fetchProducts } = useProducts();
+  const { products, createUpdateRequest, fetchProducts, createReviewRequest } = useProducts();
   const [editedProduct, setEditedProduct] = useState<ProductType | null>(null);
-  const [crop, setCrop] = useState({ x: 0, y: 0 });
-  const [zoom, setZoom] = useState(1);
-  const [croppedAreaPixels, setCroppedAreaPixels] = useState<any>(null);
+  const [userRole, setUserRole] = useState(null);
+
+
+  useEffect(() => {
+    const fetchUserRole = async () => {
+      try {
+        const response = await fetch('/api/role');
+        if (response.ok) {
+          const data = await response.json();
+          setUserRole(data.role);
+        } else {
+          console.error('Failed to fetch user role');
+        }
+      } catch (error) {
+        console.error('Error fetching user role:', error);
+      }
+    };
+
+    fetchUserRole();
+  }, []);
 
   useEffect(() => {
     if (id && products.length > 0) {
@@ -49,119 +66,40 @@ const EditProductPage = () => {
     }
   };
 
-  const onCropComplete = useCallback(
-    (croppedArea: any, croppedAreaPixels: any) => {
-      setCroppedAreaPixels(croppedAreaPixels);
-    },
-    []
-  );
-
-  const createCroppedImage = async (
-    imageSrc: string,
-    pixelCrop: any
-  ): Promise<Blob> => {
-    const image = await createImage(imageSrc);
-    const canvas = document.createElement("canvas");
-    const ctx = canvas.getContext("2d");
-
-    if (!ctx) {
-      throw new Error("No 2d context");
-    }
-
-    canvas.width = pixelCrop.width;
-    canvas.height = pixelCrop.height;
-
-    ctx.drawImage(
-      image,
-      pixelCrop.x,
-      pixelCrop.y,
-      pixelCrop.width,
-      pixelCrop.height,
-      0,
-      0,
-      pixelCrop.width,
-      pixelCrop.height
-    );
-
-    return new Promise((resolve, reject) => {
-      canvas.toBlob((blob) => {
-        if (blob) {
-          resolve(blob);
-        } else {
-          reject(new Error("Canvas is empty"));
-        }
-      }, "image/jpeg");
-    });
-  };
-
-  const createImage = (url: string): Promise<HTMLImageElement> =>
-    new Promise((resolve, reject) => {
-      const image = new Image();
-      image.addEventListener("load", () => resolve(image));
-      image.addEventListener("error", (error) => reject(error));
-      image.src = url;
-    });
-
   const handleSave = async () => {
-    if (!editedProduct) {
-      console.error("No edited product to save");
-      return;
-    }
+    if (!editedProduct) return;
 
     try {
-      console.log("Starting save process");
-      const changes: Partial<ProductType> = {};
-      for (const key in editedProduct) {
-        if (
-          editedProduct[key as keyof ProductType] !==
-          products.find((p) => p.id === id)?.[key as keyof ProductType]
-        ) {
-          changes[key as keyof ProductType] =
-            editedProduct[key as keyof ProductType];
+      if (userRole === "admin") {
+        const changes: Partial<ProductType> = {};
+        for (const key in editedProduct) {
+          if (
+            editedProduct[key as keyof ProductType] !==
+            products.find((p) => p.id === id)?.[key as keyof ProductType]
+          ) {
+            changes[key as keyof ProductType] =
+              editedProduct[key as keyof ProductType];
+          }
         }
+        await createUpdateRequest(editedProduct.id, changes);
+      } else {
+        // Send all product data for review, including the id
+        const reviewData: ProductType = {
+          ...editedProduct,
+          id: id // Ensure the id is included
+        };
+        await createReviewRequest(reviewData);
       }
-      console.log("Changes to be saved:", changes);
-
-      // Upload cropped image to Firebase if it exists
-      if (croppedAreaPixels && editedProduct.image) {
-        console.log("Cropping and uploading image");
-        try {
-          const croppedImageBlob = await createCroppedImage(
-            editedProduct.image,
-            croppedAreaPixels
-          );
-          const file = new File([croppedImageBlob], "cropped_image.jpg", {
-            type: "image/jpeg",
-          });
-          const imageUrl = await uploadImage(
-            file,
-            `products/${editedProduct.id}`
-          );
-          changes.image = imageUrl;
-          console.log("Image uploaded successfully:", imageUrl);
-        } catch (imageError) {
-          console.error("Error processing or uploading image:", imageError);
-        }
-      }
-
-      console.log("Calling createUpdateRequest");
-      await createUpdateRequest(editedProduct.id, changes);
-      console.log("createUpdateRequest completed");
-
-      console.log("Fetching updated products");
       await fetchProducts();
-      console.log("Products fetched");
-
-      console.log("Navigating to dashboard");
       router.push("/dashboard");
     } catch (error) {
-      console.error("Error in handleSave:", error);
-      alert("An error occurred while saving changes. Please try again.");
+      console.error("Error saving changes:", error);
+      // Show error message to user
     }
   };
 
   const handleCancel = () => {
-    router.push("/dashboard");
+    router.push(`/dashboard`);
   };
 
   if (!editedProduct) return <div>Loading...</div>;
@@ -178,19 +116,19 @@ const EditProductPage = () => {
             >
               Product Image
             </label>
-            <div
-              className="relative"
-              style={{ width: "100%", height: "300px" }}
-            >
-              <Cropper
-                image={editedProduct.image}
-                crop={crop}
-                zoom={zoom}
-                aspect={1}
-                onCropChange={setCrop}
-                onCropComplete={onCropComplete}
-                onZoomChange={setZoom}
-              />
+            <div className="relative">
+              {editedProduct.image && (
+                <img
+                  src={editedProduct.image}
+                  alt={editedProduct.productName}
+                  style={{
+                    width: "200px",
+                    height: "200px",
+                    objectFit: "cover",
+                  }}
+                  className="rounded"
+                />
+              )}
               <label className="cursor-pointer absolute bottom-2 right-2 bg-blue-500 text-white p-2 rounded-full">
                 <FaCamera />
                 <input
@@ -272,7 +210,7 @@ const EditProductPage = () => {
               type="button"
               onClick={handleSave}
             >
-              Save Changes
+              {userRole === "admin" ? "Save Changes" : "Submit for Review"}
             </button>
             <button
               className="bg-red-500 hover:bg-red-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline"
