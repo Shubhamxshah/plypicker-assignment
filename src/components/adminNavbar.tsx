@@ -165,7 +165,7 @@ function AdminNavbar({ className }: { className?: string }) {
           ></MenuItem>
         </Link>
 
-        <Link href={"/profile"}>
+        <Link href={"/login"}>
           <MenuItem
             setActive={setActive}
             active={active}
