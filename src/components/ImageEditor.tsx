@@ -52,7 +52,6 @@ export const ImageEditor: React.FC<ImageEditorProps> = ({ src, onSave, onCancel 
           stencilProps={{
             aspectRatio: 1,
           }}
-          imageRestriction={'stencil'}
         />
       </div>
       <div className="mt-4">
@@ -68,15 +67,6 @@ export const ImageEditor: React.FC<ImageEditorProps> = ({ src, onSave, onCancel 
           <option value="saturation">Saturation</option>
         </select>
       </div>
-      {mode !== 'crop' && (
-        <Slider
-          className="image-editor__slider mt-4"
-          min={-100}
-          max={100}
-          value={adjustments[mode]}
-          onChange={onChangeValue}
-        />
-      )}
       <div className="flex justify-end mt-6 space-x-4">
         <button
           onClick={onCancel}
