@@ -7,3 +7,13 @@ export type ProductType = {
     department: string;
 };
 
+export type ReviewProductType = {
+    id: string;
+    productName: string;
+    price: string;
+    image: string;
+    productDescription: string;
+    department: string;
+    status: string;
+    createdAt: Date;
+};

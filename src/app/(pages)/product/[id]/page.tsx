@@ -3,9 +3,10 @@
 
 import { useState, useEffect, useCallback } from "react";
 import { useParams, useRouter } from "next/navigation";
-import { FaCamera } from "react-icons/fa";
+import { FaCamera, FaCrop } from "react-icons/fa";
 import { ProductProvider, useProducts } from "@/components/ProductContext";
 import { ProductType } from "@/types/types";
+import { ImageEditor } from "@/components/ImageEditor";
 
 const EditProductPage = () => {
   const params = useParams();
@@ -14,6 +15,7 @@ const EditProductPage = () => {
   const { products, createUpdateRequest, fetchProducts, createReviewRequest } = useProducts();
   const [editedProduct, setEditedProduct] = useState<ProductType | null>(null);
   const [userRole, setUserRole] = useState(null);
+  const [showImageEditor, setShowImageEditor] = useState(false);
 
 
   useEffect(() => {
@@ -53,7 +55,7 @@ const EditProductPage = () => {
     setEditedProduct((prev) => (prev ? { ...prev, [name]: value } : null));
   };
 
-  const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
       const reader = new FileReader();
@@ -83,10 +85,9 @@ const EditProductPage = () => {
         }
         await createUpdateRequest(editedProduct.id, changes);
       } else {
-        // Send all product data for review, including the id
         const reviewData: ProductType = {
           ...editedProduct,
-          id: id // Ensure the id is included
+          id: id
         };
         await createReviewRequest(reviewData);
       }
@@ -100,6 +101,21 @@ const EditProductPage = () => {
 
   const handleCancel = () => {
     router.push(`/dashboard`);
+  };
+
+  const handleImageEditorOpen = () => {
+    setShowImageEditor(true);
+  };
+
+  const handleImageEditorClose = () => {
+    setShowImageEditor(false);
+  };
+
+  const handleImageEditorSave = (editedImageBlob: string) => {
+    setEditedProduct((prev) =>
+      prev ? { ...prev, image: editedImageBlob } : null
+    );
+    setShowImageEditor(false);
   };
 
   if (!editedProduct) return <div>Loading...</div>;
@@ -129,16 +145,24 @@ const EditProductPage = () => {
                   className="rounded"
                 />
               )}
-              <label className="cursor-pointer absolute bottom-2 right-2 bg-blue-500 text-white p-2 rounded-full">
-                <FaCamera />
-                <input
-                  type="file"
-                  className="hidden"
-                  onChange={handleImageChange}
-                  accept="image/*"
-                />
-              </label>
-            </div>
+                <div className="absolute bottom-2 right-2 flex space-x-2">
+                <button
+                  onClick={handleImageEditorOpen}
+                  className="bg-blue-500 text-white p-2 rounded-full"
+                  title="Crop Image"
+                >
+                  <FaCrop />
+                </button>
+                <label className="bg-green-500 text-white p-2 rounded-full cursor-pointer">
+                  <FaCamera />
+                  <input
+                    type="file"
+                    accept="image/*"
+                    onChange={handleImageUpload}
+                    className="hidden"
+                  />
+                </label>
+              </div>
           </div>
           <div className="mb-4">
             <label
@@ -222,6 +246,18 @@ const EditProductPage = () => {
           </div>
         </div>
       </div>
+      </div>
+      {showImageEditor && editedProduct.image && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white p-4 rounded-lg w-full max-w-4xl">
+            <ImageEditor
+              src={editedProduct.image}
+              onSave={handleImageEditorSave}
+              onCancel={handleImageEditorClose}
+            />
+          </div>
+        </div>
+      )}
     </ProductProvider>
   );
 };
