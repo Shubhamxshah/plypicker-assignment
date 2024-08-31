@@ -1,13 +1,13 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { connect } from '@/dbconfig/dbconfig';
-import Product from '@/models/productmodule';
+import ReviewRequestProduct from '@/models/ReviewRequestModule';
 
 connect();
 
 export async function GET(request: NextRequest) {
     try {
-        const products = await Product.find({}).lean();
-        return NextResponse.json(products);
+        const reviewproducts = await ReviewRequestProduct.find({}).lean();
+        return NextResponse.json(reviewproducts);
     } catch (error) {
         console.error('Error fetching products:', error);
         return NextResponse.json({ error: 'An error occurred while fetching products' }, { status: 500 });

@@ -1,7 +1,7 @@
-import User from '@/app/models/usermodule';
+import User from '@/models/usermodule';
 import { NextRequest, NextResponse } from 'next/server';
 import bcryptjs from 'bcryptjs';
-import { connect } from '@/app/dbconfig/dbconfig';
+import { connect } from '@/dbconfig/dbconfig';
 import { z } from 'zod';
 
 connect();

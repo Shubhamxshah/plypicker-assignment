@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { connect } from '@/app/dbconfig/dbconfig';
-import Product from '@/app/models/productmodule';
+import { connect } from '@/dbconfig/dbconfig';
+import Product from '@/models/productmodule';
 
 connect();
 
@@ -15,7 +15,7 @@ export async function POST(request: NextRequest) {
     const highestDbId = highestDbProduct ? parseInt(highestDbProduct.id) : 0;
 
     // Filter API products to only include ones with higher IDs
-    const newProducts = apiProducts.filter(product => parseInt(product.id) > highestDbId);
+    const newProducts = apiProducts.filter((product: any) => parseInt(product.id) > highestDbId);
 
     // Insert only the new products into the database
     if (newProducts.length > 0) {
