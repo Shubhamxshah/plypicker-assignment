@@ -5,7 +5,7 @@ import ProductGrid from './ProductGrid';
 import { useRouter } from 'next/navigation';
 import { useProducts } from '@/components/ProductContext';
 
-const TeamMemberDashboard: React.FC = () => {
+const AdminDashboard: React.FC = () => {
   const { products, fetchProducts, syncProductsFromAPI } = useProducts();
   const router = useRouter();
 
@@ -41,4 +41,4 @@ const TeamMemberDashboard: React.FC = () => {
   );
 };
 
-export default TeamMemberDashboard;
+export default AdminDashboard;

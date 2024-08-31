@@ -85,9 +85,9 @@ export default function Page() {
       <h1 className="text-2xl font-bold">
         {loading ? "Processing" : "Signup"}
       </h1>
-      <hr className="w-full my-4" />
+      <hr className="w-96 my-4 " />
       <div className="w-64">
-        <label htmlFor="email" className="block mb-1 font-medium text-gray-700">
+        <label htmlFor="email" className="block mb-1 font-medium text-slate-200">
           Email
         </label>
         <input
@@ -100,7 +100,7 @@ export default function Page() {
         />
         <label
           htmlFor="password"
-          className="block mb-1 font-medium text-gray-700"
+          className="block mb-1 font-medium text-slate-200"
         >
           Password
         </label>
@@ -114,7 +114,7 @@ export default function Page() {
         />
 
         <div className="mb-4">
-          <label className="block text-gray-700 text-sm font-bold mb-2">
+          <label className="block text-slate-200 text-sm font-bold mb-2">
             Select Role:
           </label>
           <div>

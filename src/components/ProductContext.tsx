@@ -2,26 +2,39 @@
 
 'use client'
 import React, { createContext, useContext, useState, useEffect } from 'react';
-import { ProductType } from '@/types/types';
+import { ProductType, ReviewProductType } from '@/types/types';
 
 interface ProductContextType {
   products: ProductType[];
+  reviewProducts: ReviewProductType[];
   fetchProducts: () => Promise<void>;
   createUpdateRequest: (productId: string, changes: Partial<ProductType>) => Promise<void>;
   syncProductsFromAPI: () => Promise<void>;
   createReviewRequest: (productData: ProductType) => Promise<void>;
+  fetchReviewProducts: () => Promise<void>;
 }
 
 const ProductContext = createContext<ProductContextType | undefined>(undefined);
 
 export const ProductProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [products, setProducts] = useState<ProductType[]>([]);
+  const [reviewProducts, setreviewProducts] = useState<ReviewProductType[]>([]);
 
   const fetchProducts = async () => {
     try { 
       const response = await fetch('/api/products');
       const data = await response.json();
       setProducts(data);
+    } catch (error) {
+      console.error('Error fetching products:', error);
+    }
+  };
+
+  const fetchReviewProducts = async () => {
+    try { 
+      const response = await fetch('/api/reviewProducts');
+      const data = await response.json();
+      setreviewProducts(data);
     } catch (error) {
       console.error('Error fetching products:', error);
     }
@@ -77,7 +90,7 @@ export const ProductProvider: React.FC<{ children: React.ReactNode }> = ({ child
   }, []);
 
   return (
-    <ProductContext.Provider value={{ products, fetchProducts, createUpdateRequest, syncProductsFromAPI, createReviewRequest }}>
+    <ProductContext.Provider value={{ products, reviewProducts, fetchProducts, fetchReviewProducts ,createUpdateRequest, syncProductsFromAPI, createReviewRequest }}>
       {children}
     </ProductContext.Provider>
   );
