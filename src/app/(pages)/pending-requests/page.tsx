@@ -20,7 +20,7 @@ const PendingReqPage: React.FC = () => {
       
       <div className="h-{30rem} container mx-auto py-36 relative z-10">
         <h1 className="text-4xl sm:text-7xl font-bold text-center mb-12 bg-clip-text text-transparent bg-gradient-to-b from-neutral-200 to-neutral-500">
-          Pending Requests
+          Pending Requests list
         </h1>
         <ReviewProductGrid products={reviewProducts} />
       </div>
